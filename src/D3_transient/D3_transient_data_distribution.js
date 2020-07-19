@@ -4,7 +4,7 @@ const MARGIN = {TOP:50, BOTTOM:180, LEFT:50, RIGHT:150};
 const WIDTH = 1100 - MARGIN.LEFT - MARGIN.RIGHT;
 const HEIGTH = 600 - MARGIN.TOP - MARGIN.BOTTOM;
 
-export default class D3_testes {
+export default class D3_transient_data_distribution {
     flag = false;    
     constructor(element){
         
