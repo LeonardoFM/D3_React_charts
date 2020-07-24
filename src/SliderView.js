@@ -17,19 +17,10 @@ function valuetext(value) {
 const SliderView = (props) => {
     
     const classes = useStyles();
-    const time_window = props.time_window.split(",")
-    
-    console.log(time_window[0],time_window[1])
+    const [value, setValue] = React.useState([0,1]);
+    const [slider_max, setSliderMax] = React.useState(0);
 
-    // const time = timeParse("%d/%m/%Y");
-    // a,v = time(time_window[0]), time(time_window[1])
-    const [value, setValue] = React.useState([0,100]);
-    const [slider_max, setSliderMax] = React.useState(100);
-
-    const handleChange = (event, newValue) => {
-        console.log(newValue)
-        setValue(handleChange)
-    }
+    const handleChange = (event, newValue) => { setValue(newValue) }
 
     return (
         <div className={classes.root}>
@@ -39,7 +30,7 @@ const SliderView = (props) => {
             <Slider
                 value={value}
                 onChange={handleChange}
-                max={slider_max}
+                max={1000}
                 min={0}
                 valueLabelDisplay="auto"
                 aria-labelledby="range-slider"

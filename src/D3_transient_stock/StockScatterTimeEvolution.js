@@ -1,9 +1,12 @@
 import * as d3 from 'd3';
 
+import '../style.css'
+
 const MARGIN = {left:100, right:20, top:20, bottom:150};
 const WIDTH = 600 - MARGIN.left - MARGIN.right;
 const HEIGHT = 400 - MARGIN.top - MARGIN.bottom;
 // const t = d3.transition().duration(750);
+
 
 export default class StockScatterTimeEvolution {
 
@@ -117,17 +120,33 @@ export default class StockScatterTimeEvolution {
         circle.exit().remove();
 
         circle
-            .attr('cx',(d)=>{ return this.x(d.income) })
-            .attr('cy',(d)=>{ return this.y(d.life_exp) })
+            .attr('cx',(d)=>{                 
+                if (isNaN(this.x(d.income)) ){
+                    return 1000000;
+                }
+                return this.x(d.income)
+             })
+            .attr('cy',(d)=>{
+                if(d.life_exp === null){ return 100000}
+                return this.y(d.life_exp)
+            })
             .attr('r',(d)=>{ return this.z(d.population) })
-        
+            .attr('fill',(d)=>{ return this.continentFill(d.continent) })
+                    
         circle
             .enter()
             .append('circle')
-                .attr('cx',(d)=>{ return this.x(d.income) })
-                .attr('cy',(d)=>{ return this.y(d.life_exp) })
-                .attr('r',(d)=>{ return this.z(d.population) })
-                .attr('fill',(d)=>{ return this.continentFill(d.continent) })
+                .attr('cx',(d)=>{ 
+                    if (isNaN(this.x(d.income))){
+                        return 1000000;
+                    }
+                    console.log(this.x(d.income),d.income)
+                    return this.x(d.income)
+                })
+                .attr('cy',(d)=>{ 
+                    if(d.life_exp === null){ return 100000}
+                    return this.y(d.life_exp)
+                })
 
         this.yLabel.text("Life exp");
     }

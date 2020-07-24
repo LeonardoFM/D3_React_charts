@@ -30,7 +30,7 @@ export default function SMenu2(props) {
 
   const handleMenuItemClick = (event, index) => {
     setSelectedIndex(index);
-    props.handleY(options[index])
+    props.handleYSelected(options[index])
     setAnchorEl(null);
   };
 

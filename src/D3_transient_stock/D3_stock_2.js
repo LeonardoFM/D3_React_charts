@@ -6,17 +6,16 @@ const HEIGHT = 600 - MARGIN.TOP - MARGIN.BOTTOM;
 
 export default class D3_stock_2 {
 
-    flag = false;    
-
-    constructor(element,selection,value){
-        this.selection = selection;
+    flag = true;    
+    data_ = [];
+    
+    constructor(element,selection,data, window){
         this.element = element;
-        this.value = value;
-        
+
         this.svg = d3.select(this.element).append('svg')
         .attr("width",WIDTH + MARGIN.LEFT + MARGIN.RIGHT)
         .attr("height",HEIGHT + MARGIN.TOP + MARGIN.BOTTOM);
-
+        
         this.g = this.svg.append('g')
             .attr('transform',`translate(${MARGIN.LEFT},${MARGIN.TOP})`);
 
@@ -25,7 +24,7 @@ export default class D3_stock_2 {
         this.formatTime = d3.timeFormat("%d/%m/%Y");
         
         // For tooltip
-        this.bisectDate = d3.bisector(function(d) { return d.date; }).left;
+        this.bisectDate = d3.bisector((d)=>{ return d.date; }).left;
 
         // Scales
         this.x = d3.scaleTime().range([0, WIDTH]);
@@ -54,63 +53,58 @@ export default class D3_stock_2 {
             .attr("fill", "#5D6971")
             .text("Population");
 
-        d3.json("http://127.0.0.1:8080/coins.json").then((data)=>{
-            // d3.interval(()=>{
-                this.data = data;                
-                this.update()
-            // },1)
-        })
-    }
-
-    changeSelection(selection){
-        this.selection = selection;
-        this.update()
-    }
-
-    update(){
-        const vis = this;
-        const data_ = vis.data[vis.selection];
-        console.log(this.selection,this.value)
-        console.log(data_)
-        const key = vis.value;
-        // Data cleaning
-        data_.forEach( (d) => {
-            d.date = vis.parseTime(d.date);
-            d[key] = +d[key];
-        });
-        
         // Line path generator
-        const line = d3.line()
-            .x( (d) => { return vis.x(d.date); })
-            .y( (d) => { return vis.y(d[key]); });
+        this.line = d3.line()
+            .x( (d) => { return this.x(d.date); })
+            .y( (d) => { return this.y(d.value); });
         
-        // Set scale domains
-        vis.x.domain([d3.min(data_, (d) => { return d.date; }),
-                  d3.max(data_, (d) => { return d.date; })]);
+        // Add line to chart        
+        this.line_chart = this.g.selectAll('line').data([null]);
+        this.line_chart_enter_path = this.line_chart.enter().append('path');
+        
+        this.update(data,selection, window)
+    }
 
-        vis.y.domain([d3.min(data_, (d) => { return d[key]; }) / 1.005, 
-                  d3.max(data_, (d) => { return d[key]; }) * 1.005]);
+    changeSelection(data,selected, window){this.update(data,selected, window)}
+
+    update(data_,selection, window){
+        const vis = this;
+        // const key = "market_cap";        
+        // const key = "price_usd";
+        // const key = "24h_vol"
+        const key = selection;
+
+        // Data cleaning and update
+        vis.data_ = []
+        data_.forEach( (d) => {
+            vis.data_.push({
+                date : vis.parseTime(d.date),
+                value: +d[key]
+            })
+        });
+        // Set scale domains
+        console.log(window)
+        vis.x.domain(window);
+        vis.y.domain([d3.min(vis.data_,(d)=>{return d.value}) / 1.005, 
+                    d3.max(vis.data_,(d)=>{return d.value}) * 1.005]);
 
         // Generate axes once scales have been set
         vis.xAxis.call(vis.xAxisCall)
         vis.yAxis.call(vis.yAxisCall)
         
-        // Add line to chart        
-        const line_chart = vis.g.selectAll('line').data(data_.map(d=>{return d[key]}));
+        vis.line_chart.exit().remove()
         
-        line_chart.exit().remove()
-                
-        line_chart
-            .enter()
-            .append("path")
+        this.line_chart_enter_path
             .attr("class", "line_enter")
             .attr("fill", "none")
-            .attr("stroke", "grey")
-            .attr("stroke-with", "3px")
-            .attr("d", line(data_))
-            .merge(line_chart);
+            .attr("stroke", "steelblue")
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-linecap", "round")
+            .attr("stroke-with", 1.5)
+            .attr("d", vis.line(vis.data_))
+            .merge(vis.line_chart);
 
-        /******************************** Tooltip Code ********************************/
+    //     /******************************** Tooltip Code ********************************/
 
         const focus = vis.g.append("g")
             .attr("class", "focus")
@@ -144,11 +138,14 @@ export default class D3_stock_2 {
             .on("mousemove", mousemove);
 
         function mousemove() {
-            let x0 = vis.x.invert(d3.mouse(this)[0]),
-                i = vis.bisectDate(data_, x0, 1),
-                d0 = data_[i - 1],
-                d1 = data_[i],                    
-                d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+            
+            const x0 = vis.x.invert(d3.mouse(this)[0]);
+            const i = vis.bisectDate(vis.data_, x0, 1);
+            
+            const d0 = vis.data_[i-1];
+            const d1 = vis.data_[i];
+            const d = x0 - d0.date > d1.date - x0 ? d1 : d0;
+
             focus.attr("transform", "translate(" + vis.x(d.date) + "," + vis.y(d.value) + ")");
             focus.select("text").text(`${d.value} ${vis.formatTime(d.date)}`);
             focus.select(".x-hover-line").attr("y2", HEIGHT - vis.y(d.value));
