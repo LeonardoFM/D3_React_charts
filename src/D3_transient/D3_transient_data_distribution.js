@@ -214,11 +214,11 @@ export default class D3_transient_data_distribution {
             .attr('fill',(d,i)=>{return this.color(terminais[i])})
             .merge(circle)
             .transition(d3.transition().duration(5000)) //500ms transition
-            .attr('fill',(d,i)=>{
-                if (d[i,0] === 1){
-                    return 'blue'; 
-                }          
-                return 'gray';
-            })
+                .attr('fill',(d,i)=>{
+                    if (d[i,0] === 1){
+                        return 'blue'; 
+                    }          
+                    return 'gray';
+                })
     }
 }

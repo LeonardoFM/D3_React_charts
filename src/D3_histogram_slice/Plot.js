@@ -8,7 +8,6 @@ const margin = {top:50, right:50, bottom:0, left:50},
 
 let timer = 0;
 
-
 export default class Plot{
     
     dataset;
